@@ -8,7 +8,7 @@ const Chat = () => {
   const [chatboxMessages, setChatboxMessages] = useState([]);
 
   return (
-    <div className="p-2 overflow-hidden">
+    <div className="p-2 overflow-hidden space-y-5">
       <div className="w-full bg-gray-700 chatbox overflow-y-auto rounded-lg">
         {chatboxMessages &&
           chatboxMessages.map((message, idx) => (
