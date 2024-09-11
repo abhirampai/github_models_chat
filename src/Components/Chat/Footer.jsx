@@ -11,6 +11,11 @@ const Footer = ({ setChatboxMessages }) => {
   const [message, setMessage] = useState("");
   const client = new ModelClient(endpoint, new AzureKeyCredential(token));
 
+  const scrollChatBoxToBottom = () => {
+    const chatboxElement = document.querySelector(".chatbox");
+    chatboxElement.scrollTop = chatboxElement.scrollHeight;
+  };
+
   const messageGithubModel = async () => {
     setChatboxMessages((clientMessages) => [
       ...clientMessages,
@@ -20,6 +25,9 @@ const Footer = ({ setChatboxMessages }) => {
         time: new Date().toLocaleTimeString(),
       },
     ]);
+    setMessage("");
+    setTimeout(() => scrollChatBoxToBottom(), 100);
+
     try {
       const response = await client.path("/chat/completions").post({
         body: {
@@ -46,8 +54,7 @@ const Footer = ({ setChatboxMessages }) => {
           time: new Date().toLocaleTimeString(),
         },
       ]);
-
-      setMessage("");
+      setTimeout(() => scrollChatBoxToBottom(), 100);
     } catch (err) {
       console.error(err);
     }
@@ -58,7 +65,9 @@ const Footer = ({ setChatboxMessages }) => {
       () => {};
     } else if (event.keyCode === 13) {
       event.preventDefault();
-      messageGithubModel();
+      if (message.length) {
+        messageGithubModel();
+      }
     }
   };
 
