@@ -3,12 +3,19 @@ import Footer from "./Chat/Footer";
 import classNames from "classnames";
 import MDEditor from "@uiw/react-md-editor";
 import rehypeSanitize from "rehype-sanitize";
+import Header from "./Chat/Header";
 
 const Chat = () => {
+  const defaultModel = "Meta-Llama-3-8B-Instruct";
+  const [selectedModel, setSelectedModel] = useState(defaultModel);
   const [chatboxMessages, setChatboxMessages] = useState([]);
 
   return (
     <div className="p-2 overflow-hidden space-y-5">
+      <Header
+        selectedModel={selectedModel}
+        setSelectedModel={setSelectedModel}
+      />
       <div className="w-full bg-gray-700 chatbox overflow-y-auto rounded-lg">
         {chatboxMessages &&
           chatboxMessages.map((message, idx) => (
@@ -46,7 +53,10 @@ const Chat = () => {
             </div>
           ))}
       </div>
-      <Footer setChatboxMessages={setChatboxMessages} />
+      <Footer
+        setChatboxMessages={setChatboxMessages}
+        selectedModel={selectedModel}
+      />
     </div>
   );
 };
