@@ -35,7 +35,7 @@ const Chat = () => {
                 </div>
               </div>
               <div className="chat-header capitalize text-white">
-                {message.initiator === "client" ? "you" : "model"}
+                {message.initiator === "client" ? "you" : message.modelName}
                 <time className="text-xs opacity-50 pl-2">{message.time}</time>
               </div>
               <div className="chat-bubble chat-bubble-accent">

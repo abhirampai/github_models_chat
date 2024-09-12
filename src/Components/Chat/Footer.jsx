@@ -2,14 +2,12 @@ import { useState } from "react";
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 import PropTypes from "prop-types";
-
-const token = import.meta.env.VITE_GITHUB_TOKEN;
-const endpoint = "https://models.inference.ai.azure.com";
+import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
 
 const Footer = ({ setChatboxMessages, selectedModel }) => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const client = new ModelClient(endpoint, new AzureKeyCredential(token));
+  const client = new ModelClient(AZURE_ENDPOINT, new AzureKeyCredential(GITHUB_TOKEN));
 
   const scrollChatBoxToBottom = () => {
     const chatboxElement = document.querySelector(".chatbox");
@@ -39,7 +37,9 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: message },
           ],
-          model: selectedModel,
+          model: MODELS.find(
+            ({ friendlyName }) => friendlyName === selectedModel
+          ).originalName,
           temperature: 1,
           max_tokens: 1000,
           top_p: 1,
@@ -55,6 +55,7 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
         {
           message: response.body.choices[0].message.content,
           initiator: "model",
+          modelName: selectedModel,
           time: new Date().toLocaleTimeString(),
         },
       ]);
