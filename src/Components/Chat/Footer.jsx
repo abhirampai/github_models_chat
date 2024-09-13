@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useContext } from "react";
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
-import PropTypes from "prop-types";
-import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
 
-const Footer = ({ setChatboxMessages, selectedModel }) => {
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const client = new ModelClient(AZURE_ENDPOINT, new AzureKeyCredential(GITHUB_TOKEN));
+import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
+import { AppState } from "../../Hooks/utils";
+
+const Footer = () => {
+  const client = new ModelClient(
+    AZURE_ENDPOINT,
+    new AzureKeyCredential(GITHUB_TOKEN)
+  );
+  const {
+    selectedModel,
+    chatboxMessages,
+    clientMessage: message,
+    isLoading,
+  } = useContext(AppState);
 
   const scrollChatBoxToBottom = () => {
     const chatboxElement = document.querySelector(".chatbox");
@@ -15,18 +23,15 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
   };
 
   const messageGithubModel = async () => {
-    if (isLoading) return;
+    if (isLoading.value) return;
 
-    setIsLoading(true);
-    setChatboxMessages((clientMessages) => [
-      ...clientMessages,
-      {
-        message: message,
-        initiator: "client",
-        time: new Date().toLocaleTimeString(),
-      },
-    ]);
-    setMessage("");
+    isLoading.value = true;
+    chatboxMessages.push({
+      message: message.value,
+      initiator: "client",
+      time: new Date().toLocaleTimeString(),
+    });
+    message.value = "";
 
     setTimeout(() => scrollChatBoxToBottom(), 100);
 
@@ -35,10 +40,10 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
         body: {
           messages: [
             { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: message },
+            { role: "user", content: message.value },
           ],
           model: MODELS.find(
-            ({ friendlyName }) => friendlyName === selectedModel
+            ({ friendlyName }) => friendlyName === selectedModel.value
           ).originalName,
           temperature: 1,
           max_tokens: 1000,
@@ -50,20 +55,17 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
         throw response.body.error;
       }
 
-      setChatboxMessages((chatbotMessages) => [
-        ...chatbotMessages,
-        {
-          message: response.body.choices[0].message.content,
-          initiator: "model",
-          modelName: selectedModel,
-          time: new Date().toLocaleTimeString(),
-        },
-      ]);
+      chatboxMessages.push({
+        message: response.body.choices[0].message.content,
+        initiator: "model",
+        modelName: selectedModel.value,
+        time: new Date().toLocaleTimeString(),
+      });
       setTimeout(() => scrollChatBoxToBottom(), 100);
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      isLoading.value = false;
     }
   };
 
@@ -72,7 +74,7 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
       () => {};
     } else if (event.keyCode === 13) {
       event.preventDefault();
-      if (message.length) {
+      if (message.value.length) {
         messageGithubModel();
       }
     }
@@ -84,15 +86,15 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
         <textarea
           rows="1"
           className="textarea w-full textarea-bordered rounded-lg"
-          placeholder={`Message ${selectedModel}`}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          placeholder={`Message ${selectedModel.value}`}
+          value={message.value}
+          onChange={(e) => (message.value = e.target.value)}
           onKeyDown={textAreaKeyDownEvent}
-          disabled={isLoading}
+          disabled={isLoading.value}
         ></textarea>
         <button
           className="absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2 bg-transparent rounded-full cursor-pointer text-blue-600"
-          disabled={isLoading}
+          disabled={isLoading.value}
           onClick={messageGithubModel}
         >
           <svg
@@ -107,11 +109,6 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
       </div>
     </div>
   );
-};
-
-Footer.propTypes = {
-  setChatboxMessages: PropTypes.func.isRequired,
-  selectedModel: PropTypes.string.isRequired,
 };
 
 export default Footer;
