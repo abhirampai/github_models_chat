@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 
@@ -6,13 +6,16 @@ import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
 import { AppState } from "../../Hooks/utils";
 
 const Footer = () => {
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const client = new ModelClient(
     AZURE_ENDPOINT,
     new AzureKeyCredential(GITHUB_TOKEN)
   );
-  const { selectedModel, chatboxMessages } = useContext(AppState);
+  const {
+    selectedModel,
+    chatboxMessages,
+    clientMessage: message,
+    isLoading,
+  } = useContext(AppState);
 
   const scrollChatBoxToBottom = () => {
     const chatboxElement = document.querySelector(".chatbox");
@@ -20,15 +23,15 @@ const Footer = () => {
   };
 
   const messageGithubModel = async () => {
-    if (isLoading) return;
+    if (isLoading.value) return;
 
-    setIsLoading(true);
+    isLoading.value = true;
     chatboxMessages.push({
-      message: message,
+      message: message.value,
       initiator: "client",
       time: new Date().toLocaleTimeString(),
     });
-    setMessage("");
+    message.value = "";
 
     setTimeout(() => scrollChatBoxToBottom(), 100);
 
@@ -37,7 +40,7 @@ const Footer = () => {
         body: {
           messages: [
             { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: message },
+            { role: "user", content: message.value },
           ],
           model: MODELS.find(
             ({ friendlyName }) => friendlyName === selectedModel.value
@@ -62,7 +65,7 @@ const Footer = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      isLoading.value = false;
     }
   };
 
@@ -71,7 +74,7 @@ const Footer = () => {
       () => {};
     } else if (event.keyCode === 13) {
       event.preventDefault();
-      if (message.length) {
+      if (message.value.length) {
         messageGithubModel();
       }
     }
@@ -84,14 +87,14 @@ const Footer = () => {
           rows="1"
           className="textarea w-full textarea-bordered rounded-lg"
           placeholder={`Message ${selectedModel.value}`}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          value={message.value}
+          onChange={(e) => (message.value = e.target.value)}
           onKeyDown={textAreaKeyDownEvent}
-          disabled={isLoading}
+          disabled={isLoading.value}
         ></textarea>
         <button
           className="absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2 bg-transparent rounded-full cursor-pointer text-blue-600"
-          disabled={isLoading}
+          disabled={isLoading.value}
           onClick={messageGithubModel}
         >
           <svg
