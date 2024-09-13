@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
-import PropTypes from "prop-types";
-import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
 
-const Footer = ({ setChatboxMessages, selectedModel }) => {
+import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
+import { AppState } from "../../Hooks/utils";
+
+const Footer = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const client = new ModelClient(AZURE_ENDPOINT, new AzureKeyCredential(GITHUB_TOKEN));
+  const client = new ModelClient(
+    AZURE_ENDPOINT,
+    new AzureKeyCredential(GITHUB_TOKEN)
+  );
+  const { selectedModel, chatboxMessages } = useContext(AppState);
 
   const scrollChatBoxToBottom = () => {
     const chatboxElement = document.querySelector(".chatbox");
@@ -18,14 +23,11 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
     if (isLoading) return;
 
     setIsLoading(true);
-    setChatboxMessages((clientMessages) => [
-      ...clientMessages,
-      {
-        message: message,
-        initiator: "client",
-        time: new Date().toLocaleTimeString(),
-      },
-    ]);
+    chatboxMessages.push({
+      message: message,
+      initiator: "client",
+      time: new Date().toLocaleTimeString(),
+    });
     setMessage("");
 
     setTimeout(() => scrollChatBoxToBottom(), 100);
@@ -38,7 +40,7 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
             { role: "user", content: message },
           ],
           model: MODELS.find(
-            ({ friendlyName }) => friendlyName === selectedModel
+            ({ friendlyName }) => friendlyName === selectedModel.value
           ).originalName,
           temperature: 1,
           max_tokens: 1000,
@@ -50,15 +52,12 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
         throw response.body.error;
       }
 
-      setChatboxMessages((chatbotMessages) => [
-        ...chatbotMessages,
-        {
-          message: response.body.choices[0].message.content,
-          initiator: "model",
-          modelName: selectedModel,
-          time: new Date().toLocaleTimeString(),
-        },
-      ]);
+      chatboxMessages.push({
+        message: response.body.choices[0].message.content,
+        initiator: "model",
+        modelName: selectedModel.value,
+        time: new Date().toLocaleTimeString(),
+      });
       setTimeout(() => scrollChatBoxToBottom(), 100);
     } catch (err) {
       console.error(err);
@@ -84,7 +83,7 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
         <textarea
           rows="1"
           className="textarea w-full textarea-bordered rounded-lg"
-          placeholder={`Message ${selectedModel}`}
+          placeholder={`Message ${selectedModel.value}`}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={textAreaKeyDownEvent}
@@ -107,11 +106,6 @@ const Footer = ({ setChatboxMessages, selectedModel }) => {
       </div>
     </div>
   );
-};
-
-Footer.propTypes = {
-  setChatboxMessages: PropTypes.func.isRequired,
-  selectedModel: PropTypes.string.isRequired,
 };
 
 export default Footer;
