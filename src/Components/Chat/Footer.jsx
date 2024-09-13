@@ -4,6 +4,7 @@ import { AzureKeyCredential } from "@azure/core-auth";
 
 import { AZURE_ENDPOINT, GITHUB_TOKEN, MODELS } from "../constants";
 import { AppState } from "../../Hooks/utils";
+import { createSseStream } from "@azure/core-sse";
 
 const Footer = () => {
   const client = new ModelClient(
@@ -31,37 +32,55 @@ const Footer = () => {
       initiator: "client",
       time: new Date().toLocaleTimeString(),
     });
-    message.value = "";
-
     setTimeout(() => scrollChatBoxToBottom(), 100);
 
     try {
-      const response = await client.path("/chat/completions").post({
-        body: {
-          messages: [
-            { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: message.value },
-          ],
-          model: MODELS.find(
-            ({ friendlyName }) => friendlyName === selectedModel.value
-          ).originalName,
-          temperature: 1,
-          max_tokens: 1000,
-          top_p: 1,
-        },
-      });
+      const response = await client
+        .path("/chat/completions")
+        .post({
+          body: {
+            messages: [
+              { role: "system", content: "You are a helpful assistant." },
+              { role: "user", content: message.value },
+            ],
+            model: MODELS.find(
+              ({ friendlyName }) => friendlyName === selectedModel.value
+            ).originalName,
+            stream: true,
+          },
+        })
+        .asNodeStream();
+      message.value = "";
+
+      const stream = response.body;
+      if (!stream) {
+        throw new Error("The response stream is undefined");
+      }
 
       if (response.status !== "200") {
+        stream.destroy();
         throw response.body.error;
       }
 
+      const sseStream = createSseStream(stream);
+
       chatboxMessages.push({
-        message: response.body.choices[0].message.content,
+        message: "",
         initiator: "model",
         modelName: selectedModel.value,
         time: new Date().toLocaleTimeString(),
       });
-      setTimeout(() => scrollChatBoxToBottom(), 100);
+
+      for await (const event of sseStream) {
+        if (event.data === "[DONE]") {
+          return;
+        }
+        for (const choice of JSON.parse(event.data).choices) {
+          chatboxMessages[chatboxMessages.length - 1].message +=
+            choice.delta?.content ?? "";
+          setTimeout(() => scrollChatBoxToBottom(), 100);
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
