@@ -12,7 +12,7 @@ const Chat = () => {
   return (
     <div className="p-2 overflow-hidden space-y-5">
       <Header />
-      <div className="w-full bg-gray-700 chatbox overflow-y-auto rounded-lg">
+      <div className="w-full chatbox overflow-y-auto rounded-lg">
         {chatboxMessages &&
           chatboxMessages.map((message, idx) => (
             <div
@@ -30,11 +30,11 @@ const Chat = () => {
                   />
                 </div>
               </div>
-              <div className="chat-header capitalize text-white">
+              <div className="chat-header capitalize text-black dark:text-white">
                 {message.initiator === "client" ? "you" : message.modelName}
                 <time className="text-xs opacity-50 pl-2">{message.time}</time>
               </div>
-              <div className="chat-bubble chat-bubble-accent">
+              <div className="chat-bubble chat-bubble-success dark:chat-bubble-primary">
                 <MDEditor.Markdown
                   source={message.message}
                   style={{
