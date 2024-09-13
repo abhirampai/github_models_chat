@@ -126,6 +126,9 @@ const Footer = () => {
           </svg>
         </button>
       </div>
+      <a href="https://www.flaticon.com/free-icons/phone" title="phone icons">
+        Phone icons created by Freepik - Flaticon
+      </a>
     </div>
   );
 };
