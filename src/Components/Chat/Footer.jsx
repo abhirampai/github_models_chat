@@ -101,7 +101,7 @@ const Footer = () => {
 
   return (
     <div className="flex flex-col items-center py-2 px-3 bg-gray-50 rounded-lg dark:bg-gray-700 space-y-2">
-      <div className="w-1/2 relative gap-x-2">
+      <div className="w-full md:w-1/2 relative gap-x-2">
         <textarea
           rows="1"
           className="textarea w-full textarea-bordered rounded-lg"
