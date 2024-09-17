@@ -8,12 +8,16 @@ export const createAppState = () => {
   const chatboxMessages = observable([]);
   const clientMessage = signal("");
   const isLoading = signal(false);
+  const chatHistory = signal([
+    { role: "system", content: "You are a helpful assistant." },
+  ]);
 
   return {
     selectedModel,
     chatboxMessages,
     isLoading,
     clientMessage,
+    chatHistory
   };
 };
 
