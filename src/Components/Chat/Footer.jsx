@@ -16,6 +16,7 @@ const Footer = () => {
     chatboxMessages,
     clientMessage: message,
     isLoading,
+    chatHistory,
   } = useContext(AppState);
 
   const scrollChatBoxToBottom = () => {
@@ -35,14 +36,15 @@ const Footer = () => {
     setTimeout(() => scrollChatBoxToBottom(), 100);
 
     try {
+      chatHistory.value.push({
+        role: "user",
+        content: message.value,
+      });
       const response = await client
         .path("/chat/completions")
         .post({
           body: {
-            messages: [
-              { role: "system", content: "You are a helpful assistant." },
-              { role: "user", content: message.value },
-            ],
+            messages: [...chatHistory.value],
             model: MODELS.find(
               ({ friendlyName }) => friendlyName === selectedModel.value
             ).originalName,
@@ -81,6 +83,10 @@ const Footer = () => {
           setTimeout(() => scrollChatBoxToBottom(), 100);
         }
       }
+      chatHistory.value.push({
+        role: "assistant",
+        content: chatboxMessages[chatboxMessages.length - 1].message,
+      });
     } catch (err) {
       console.error(err);
     } finally {
