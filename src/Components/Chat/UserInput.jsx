@@ -139,7 +139,7 @@ const UserInput = ({ message }) => {
     </div>
       <span>
         <button onClick={handleClearChat} disabled={isLoading.value}>
-          Clear Chat
+          Clear chat
         </button>
       </span>
     </div>
