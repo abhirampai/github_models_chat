@@ -103,7 +103,15 @@ const UserInput = ({ message }) => {
     }
   };
 
+  const handleClearChat = () => {
+    chatHistory.value = [
+      { role: "system", content: "You are a helpful assistant." },
+    ]
+    chatboxMessages.length = 0
+  }
+
   return (
+    <div className="flex space-x-2 items-center w-full justify-center">
     <div className="w-full md:w-1/2 relative gap-x-2">
       <textarea
         rows="1"
@@ -128,6 +136,12 @@ const UserInput = ({ message }) => {
           <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
         </svg>
       </button>
+    </div>
+      <span>
+        <button onClick={handleClearChat} disabled={isLoading.value}>
+          Clear Chat
+        </button>
+      </span>
     </div>
   );
 };
